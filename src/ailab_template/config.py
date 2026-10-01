@@ -13,11 +13,13 @@ DEFAULT_CONFIG_PATH = "eval_config.toml"
 
 #: environment variable -> EvalConfig attribute
 ENV_OVERRIDES: dict[str, str] = {
+    "AILAB_LAB": "lab",
     "AILAB_DATASET": "dataset",
     "AILAB_CLASSIFIER": "classifier",
     "AILAB_OUTPUT": "output",
     "AILAB_MIN_ACCURACY": "min_accuracy",
     "AILAB_MIN_MACRO_F1": "min_macro_f1",
+    "AILAB_PRIMARY_METRIC": "primary_metric",
 }
 
 
@@ -27,11 +29,13 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class EvalConfig:
+    lab: str = "ailab-template-python"
     dataset: Path = Path("fixtures/support_intents.jsonl")
     classifier: str = "keyword"
     output: Path = Path("eval_results.json")
     min_accuracy: float = 0.0
     min_macro_f1: float = 0.0
+    primary_metric: str = "accuracy"
     thresholds: dict[str, float] = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
@@ -39,6 +43,10 @@ class EvalConfig:
             value = getattr(self, name)
             if not 0.0 <= value <= 1.0:
                 raise ConfigError(f"{name} must be within [0, 1], got {value}")
+        if self.primary_metric not in ("accuracy", "macro_f1"):
+            raise ConfigError(
+                f"primary_metric must be accuracy or macro_f1, not {self.primary_metric!r}"
+            )
         object.__setattr__(
             self,
             "thresholds",
@@ -59,10 +67,14 @@ def _from_mapping(data: Mapping[str, Any]) -> dict[str, Any]:
     values: dict[str, Any] = {}
     if "dataset" in section:
         values["dataset"] = Path(section["dataset"])
+    if "lab" in section:
+        values["lab"] = str(section["lab"])
     if "classifier" in section:
         values["classifier"] = str(section["classifier"])
     if "output" in section:
         values["output"] = Path(section["output"])
+    if "primary_metric" in section:
+        values["primary_metric"] = str(section["primary_metric"])
     if "accuracy" in thresholds:
         values["min_accuracy"] = _float("thresholds.accuracy", thresholds["accuracy"])
     if "macro_f1" in thresholds:

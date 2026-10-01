@@ -26,7 +26,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     greeting = os.environ.get("AILAB_DEMO_GREETING", "ailab-template demo")
     print(f"== {greeting} ==\n")
     for text in SAMPLES:
-        predictions = ", ".join(f"{clf.name}={clf.predict(text)}" for clf in classifiers)
+        predictions = ", ".join(f"{clf.model}={clf.predict(text)}" for clf in classifiers)
         print(f"- {text}\n    -> {predictions}")
     print("\n== eval ==\n")
     return eval_main(argv)

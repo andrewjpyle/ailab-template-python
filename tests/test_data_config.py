@@ -57,6 +57,16 @@ def test_config_file_then_env_override(tmp_path: Path) -> None:
     assert config.min_macro_f1 == 0.4
     assert config.output == Path("out/r.json")
     assert config.thresholds == {"accuracy": 0.9, "macro_f1": 0.4}
+    assert config.lab == "ailab-template-python"
+
+
+def test_config_lab_and_primary_metric(tmp_path: Path) -> None:
+    cfg = tmp_path / "c.toml"
+    cfg.write_text('[eval]\nlab = "ailab-evals"\nprimary_metric = "macro_f1"\n')
+    config = load_config(cfg, env={"AILAB_LAB": "ailab-rag"})
+    assert (config.lab, config.primary_metric) == ("ailab-rag", "macro_f1")
+    with pytest.raises(ConfigError, match="primary_metric"):
+        load_config(cfg, env={"AILAB_PRIMARY_METRIC": "f2"})
 
 
 def test_config_env_points_at_file(tmp_path: Path) -> None:

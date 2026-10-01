@@ -2,9 +2,11 @@
 # Every key can be overridden by an environment variable (see README).
 
 [eval]
+lab = "ailab-template-python"  # recorded in eval_results.json; rename in your lab
 dataset = "fixtures/support_intents.jsonl"
-classifier = "keyword"            # keyword | majority | llm-stub
+classifier = "keyword"         # keyword | majority | llm-stub
 output = "eval_results.json"
+primary_metric = "accuracy"    # reported as `threshold` in eval_results.json
 
 [thresholds]
 accuracy = 0.80

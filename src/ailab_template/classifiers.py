@@ -21,11 +21,12 @@ def tokenize(text: str) -> list[str]:
 class Classifier(Protocol):
     """Anything that maps text to one label.
 
-    Swap in a fine-tuned model, an LLM, or a rules engine: if it has ``name``
-    and ``predict``, the eval runner can score it.
+    Swap in a fine-tuned model, an LLM, or a rules engine: if it identifies
+    itself (``provider``, ``model``) and has ``predict``, the eval runner can score it.
     """
 
-    name: str
+    provider: str  # who serves the model, e.g. "baseline", "stub", "openai"
+    model: str  # stable model id recorded in eval results
 
     def predict(self, text: str) -> str: ...
 
@@ -58,7 +59,8 @@ class KeywordClassifier:
     model has to beat to justify its cost.
     """
 
-    name = "keyword"
+    provider = "baseline"
+    model = "keyword-baseline-v1"
 
     def __init__(
         self,
@@ -93,7 +95,8 @@ class KeywordClassifier:
 class MajorityClassifier:
     """Always predicts the most common training label: the floor every model must clear."""
 
-    name = "majority"
+    provider = "baseline"
+    model = "majority-baseline-v1"
 
     def __init__(self, label: str) -> None:
         self.label = label

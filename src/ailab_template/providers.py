@@ -17,6 +17,7 @@ class LLMProvider(Protocol):
     what makes providers swappable and the eval reproducible.
     """
 
+    name: str  # provider id recorded in eval results, e.g. "stub"
     model: str
 
     def complete(self, prompt: str) -> str: ...
@@ -29,7 +30,8 @@ class StubProvider:
     so the full prompt -> completion -> parse path is exercised without a network.
     """
 
-    model = "stub-keyword-v0"
+    name = "stub"
+    model = "stub-keyword-v1"
 
     def __init__(self) -> None:
         self._baseline = KeywordClassifier()
@@ -54,10 +56,11 @@ class LLMClassifier:
     def __init__(self, provider: LLMProvider, labels: Sequence[str], fallback: str) -> None:
         if fallback not in labels:
             raise ValueError("fallback must be one of the labels")
-        self.provider = provider
+        self.backend = provider
         self.labels = list(labels)
         self.fallback = fallback
-        self.name = f"llm:{provider.model}"
+        self.provider = provider.name
+        self.model = provider.model
 
     def build_prompt(self, text: str) -> str:
         return PROMPT_TEMPLATE.format(labels=", ".join(self.labels), text=text)
@@ -68,4 +71,4 @@ class LLMClassifier:
         return answer if answer in self.labels else self.fallback
 
     def predict(self, text: str) -> str:
-        return self.parse(self.provider.complete(self.build_prompt(text)))
+        return self.parse(self.backend.complete(self.build_prompt(text)))

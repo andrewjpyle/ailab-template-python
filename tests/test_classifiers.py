@@ -64,6 +64,14 @@ def test_majority_classifier_rejects_empty() -> None:
         MajorityClassifier.fit([])
 
 
+def test_baselines_identify_themselves() -> None:
+    assert (KeywordClassifier.provider, KeywordClassifier.model) == (
+        "baseline",
+        "keyword-baseline-v1",
+    )
+    assert MajorityClassifier("a").model == "majority-baseline-v1"
+
+
 def test_all_classifiers_satisfy_protocol() -> None:
     llm = LLMClassifier(StubProvider(), labels=["a", "b"], fallback="a")
     for clf in (KeywordClassifier(), MajorityClassifier("a"), llm):
@@ -72,7 +80,8 @@ def test_all_classifiers_satisfy_protocol() -> None:
 
 
 class _CannedProvider:
-    model = "canned"
+    name = "canned"
+    model = "canned-v1"
 
     def __init__(self, reply: str) -> None:
         self.reply = reply
@@ -89,7 +98,7 @@ def test_llm_classifier_builds_prompt_and_parses() -> None:
     assert clf.predict("charged twice") == "billing"
     assert "billing, bug" in provider.prompts[0]
     assert provider.prompts[0].endswith("Text: charged twice")
-    assert clf.name == "llm:canned"
+    assert (clf.provider, clf.model) == ("canned", "canned-v1")
 
 
 @pytest.mark.parametrize("reply", ["I am not sure", "Label: refunds", ""])

@@ -46,65 +46,83 @@ def build_classifier(name: str, examples: Sequence[Example]) -> Classifier:
     raise ConfigError(f"unknown classifier {name!r}; choose one of {', '.join(CLASSIFIERS)}")
 
 
-def current_commit() -> str:
-    """Commit for the results record: env first (CI, Docker), then git, else 'unknown'."""
-    for var in ("AILAB_COMMIT", "GITHUB_SHA"):
+SCHEMA_VERSION = 1
+
+
+def current_commit() -> str | None:
+    """Commit for the results record: env first (CI, Docker), then git, else None."""
+    for var in ("GITHUB_SHA", "AILAB_COMMIT"):
         if sha := os.environ.get(var):
-            return sha[:7]
+            return sha if sha != "unknown" else None
     try:
         out = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
+            ["git", "rev-parse", "HEAD"],
             capture_output=True,
             text=True,
             check=True,
             timeout=5,
         )
     except (OSError, subprocess.SubprocessError):
-        return "unknown"
-    return out.stdout.strip() or "unknown"
+        return None
+    return out.stdout.strip() or None
+
+
+def _round(value: float) -> float:
+    return round(value, 4)
 
 
 def evaluate(config: EvalConfig) -> dict[str, Any]:
-    """Run one eval and return a JSON-serialisable results record."""
+    """Run one eval and return the results record written to ``eval_results.json``.
+
+    The top-level keys up to ``generated_at`` are a stable contract (``schema_version``
+    1) that downstream tools may parse; the remaining keys are diagnostic extras.
+    """
     examples = load_jsonl(config.dataset)
     classifier = build_classifier(config.classifier, examples)
     gold = [example.label for example in examples]
     predicted = [classifier.predict(example.text) for example in examples]
 
-    metrics = {"accuracy": accuracy(gold, predicted), "macro_f1": macro_f1(gold, predicted)}
+    scores = {"accuracy": accuracy(gold, predicted), "macro_f1": macro_f1(gold, predicted)}
     failures = [
-        f"{metric} {metrics[metric]:.4f} < threshold {floor:.4f}"
+        f"{metric} {scores[metric]:.4f} < threshold {floor:.4f}"
         for metric, floor in config.thresholds.items()
-        if metrics[metric] < floor
+        if scores[metric] < floor
     ]
     return {
-        "date": datetime.now(UTC).date().isoformat(),
-        "commit": current_commit(),
-        "classifier": classifier.name,
-        "dataset": config.dataset.as_posix(),
-        "n_examples": len(examples),
-        "metrics": {key: round(value, 4) for key, value in metrics.items()},
-        "thresholds": config.thresholds,
+        "schema_version": SCHEMA_VERSION,
+        "lab": config.lab,
+        "dataset": config.dataset.stem,
+        "provider": classifier.provider,
+        "model": classifier.model,
+        "primary_metric": config.primary_metric,
+        "metrics": {**{key: _round(value) for key, value in scores.items()}, "n": len(examples)},
+        "threshold": config.thresholds[config.primary_metric],
         "passed": not failures,
+        "commit": current_commit(),
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
+        # Diagnostic extras.
+        "dataset_path": config.dataset.as_posix(),
+        "thresholds": config.thresholds,
         "failures": failures,
         "per_class": {
-            label: {key: round(value, 4) if isinstance(value, float) else value
-                    for key, value in asdict(scores).items()}
-            for label, scores in per_class(gold, predicted).items()
+            label: {key: _round(value) if isinstance(value, float) else value
+                    for key, value in asdict(class_scores).items()}
+            for label, class_scores in per_class(gold, predicted).items()
         },
         "confusion_matrix": confusion_matrix(gold, predicted),
     }  # fmt: skip
 
 
 def markdown_rows(result: dict[str, Any]) -> str:
-    """One table row per gated metric, matching the README's Eval results table."""
-    dataset = Path(result["dataset"]).name
+    """README "Eval results" rows, derived only from a results record."""
+    commit = (result["commit"] or "unknown")[:7]
+    dataset = f"{result['dataset']} (n={result['metrics']['n']})"
     note = "PASS" if result["passed"] else "FAIL"
     rows = [
-        f"| {result['date']} | {result['commit']} | {result['classifier']} | {dataset} "
-        f"(n={result['n_examples']}) | {metric} | {score:.4f} | "
-        f"{note} (floor {result['thresholds'][metric]:.2f}) |"
-        for metric, score in result["metrics"].items()
+        f"| {result['generated_at'][:10]} | {commit} | {result['model']} ({result['provider']}) "
+        f"| {dataset} | {metric} | {result['metrics'][metric]:.4f} | "
+        f"{note} (floor {floor:.2f}) |"
+        for metric, floor in result["thresholds"].items()
     ]
     return "\n".join(rows)
 
@@ -119,11 +137,25 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument("--output", type=Path, help="override the results JSON path")
     parser.add_argument("--min-accuracy", type=float, help="override the accuracy floor")
     parser.add_argument("--min-macro-f1", type=float, help="override the macro-F1 floor")
+    parser.add_argument(
+        "--table-from",
+        type=Path,
+        metavar="RESULTS_JSON",
+        help="print README table rows from an existing results file, without running",
+    )
     return parser.parse_args(argv)  # fmt: skip
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
+    if args.table_from is not None:
+        try:
+            record = json.loads(args.table_from.read_text(encoding="utf-8"))
+            print(f"{TABLE_HEADER}\n{markdown_rows(record)}")
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            print(f"ailab-eval: error: cannot read {args.table_from}: {exc!r}", file=sys.stderr)
+            return 2
+        return 0
     try:
         config = load_config(args.config)
         overrides = {

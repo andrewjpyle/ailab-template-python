@@ -104,7 +104,7 @@ scan_pattern() {
   while IFS= read -r loc; do
     echo "denylist: HIT ${loc} matched ${label}"
     hits=$((hits + 1))
-  done < <(xargs -0 grep -HnIiE -e "$pattern" -- <"$workdir/files" 2>/dev/null | cut -d: -f1,2 || true)
+  done < <(xargs -0 -r grep -HnIiE -e "$pattern" -- <"$workdir/files" 2>/dev/null | cut -d: -f1,2 || true)
   # History: grep prints the line number in the dump; translate it to commit + path.
   while IFS= read -r lineno; do
     echo "denylist: HIT history $(locate_history_line "$lineno") matched ${label}"

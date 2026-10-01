@@ -1,0 +1,11 @@
+# Regression gate for `ailab-eval`. CI fails if a metric drops below its floor.
+# Every key can be overridden by an environment variable (see README).
+
+[eval]
+dataset = "fixtures/support_intents.jsonl"
+classifier = "keyword"            # keyword | majority | llm-stub
+output = "eval_results.json"
+
+[thresholds]
+accuracy = 0.80
+macro_f1 = 0.80

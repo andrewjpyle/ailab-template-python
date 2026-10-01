@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Generated eval output (CI uploads it as an artifact)
+eval_results.json
+results/
+
+# Local secrets and config: never commit
+.env
+.env.*
+denylist.txt
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

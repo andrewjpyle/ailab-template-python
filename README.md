@@ -1,6 +1,6 @@
 # ailab-template-python
 
-[![CI](https://github.com/apyle0710/ailab-template-python/actions/workflows/ci.yml/badge.svg)](https://github.com/apyle0710/ailab-template-python/actions/workflows/ci.yml)
+[![CI](https://github.com/andrewjpyle/ailab-template-python/actions/workflows/ci.yml/badge.svg)](https://github.com/andrewjpyle/ailab-template-python/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)
 
@@ -21,7 +21,7 @@ four intents with a keyword baseline. It exists to make the loop real, not to be
 
 ## Using the template
 
-1. On GitHub, click **Use this template** (or `gh repo create my-lab --template apyle0710/ailab-template-python`).
+1. On GitHub, click **Use this template** (or `gh repo create my-lab --template andrewjpyle/ailab-template-python`).
 2. Clone it, then **enable the git hooks. This is required, not optional**:
 
    ```bash

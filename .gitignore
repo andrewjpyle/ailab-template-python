@@ -17,6 +17,8 @@ htmlcov/
 # Generated eval output (CI uploads it as an artifact)
 eval_results.json
 results/
+# but keep the committed capture that the README anatomy graphic is built from
+!docs/assets/src/captures/eval_results.json
 
 # Local secrets and config: never commit
 .env

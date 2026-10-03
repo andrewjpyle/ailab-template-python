@@ -1,0 +1,16 @@
+{
+  "name": "eval_run",
+  "command": [
+    "uv",
+    "run",
+    "--no-sync",
+    "ailab-eval"
+  ],
+  "exit_code": 0,
+  "captured_at": "2026-10-03T04:24:25+00:00",
+  "commit": "00c298d931c8452ad1bfe9a42a3e7e23998f7c1f",
+  "line_count": 4,
+  "env_passed": [],
+  "note": "",
+  "output": "| Date | Commit | Model/Provider | Dataset | Metric | Score | Notes |\n|---|---|---|---|---|---|---|\n| 2026-10-03 | 00c298d | keyword-baseline-v1 (baseline) | support_intents (n=40) | accuracy | 0.8750 | PASS (floor 0.80) |\n| 2026-10-03 | 00c298d | keyword-baseline-v1 (baseline) | support_intents (n=40) | macro_f1 | 0.8813 | PASS (floor 0.80) |\n"
+}

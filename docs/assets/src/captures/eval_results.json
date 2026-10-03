@@ -1,0 +1,14 @@
+{
+  "name": "eval_results",
+  "command": [
+    "cat",
+    "eval_results.json"
+  ],
+  "exit_code": 0,
+  "captured_at": "2026-10-03T04:24:34+00:00",
+  "commit": "00c298d931c8452ad1bfe9a42a3e7e23998f7c1f",
+  "line_count": 75,
+  "env_passed": [],
+  "note": "eval_results.json written by 'uv run ailab-eval' (make eval) on this commit; shown verbatim",
+  "output": "{\n  \"schema_version\": 1,\n  \"lab\": \"ailab-template-python\",\n  \"dataset\": \"support_intents\",\n  \"provider\": \"baseline\",\n  \"model\": \"keyword-baseline-v1\",\n  \"primary_metric\": \"accuracy\",\n  \"metrics\": {\n    \"accuracy\": 0.875,\n    \"macro_f1\": 0.8813,\n    \"n\": 40\n  },\n  \"threshold\": 0.8,\n  \"passed\": true,\n  \"commit\": \"00c298d931c8452ad1bfe9a42a3e7e23998f7c1f\",\n  \"generated_at\": \"2026-10-03T04:24:25Z\",\n  \"dataset_path\": \"fixtures/support_intents.jsonl\",\n  \"thresholds\": {\n    \"accuracy\": 0.8,\n    \"macro_f1\": 0.8\n  },\n  \"failures\": [],\n  \"per_class\": {\n    \"account\": {\n      \"precision\": 1.0,\n      \"recall\": 0.9,\n      \"f1\": 0.9474,\n      \"support\": 10\n    },\n    \"billing\": {\n      \"precision\": 1.0,\n      \"recall\": 0.8,\n      \"f1\": 0.8889,\n      \"support\": 10\n    },\n    \"bug\": {\n      \"precision\": 1.0,\n      \"recall\": 0.8,\n      \"f1\": 0.8889,\n      \"support\": 10\n    },\n    \"feedback\": {\n      \"precision\": 0.6667,\n      \"recall\": 1.0,\n      \"f1\": 0.8,\n      \"support\": 10\n    }\n  },\n  \"confusion_matrix\": {\n    \"account\": {\n      \"account\": 9,\n      \"billing\": 0,\n      \"bug\": 0,\n      \"feedback\": 1\n    },\n    \"billing\": {\n      \"account\": 0,\n      \"billing\": 8,\n      \"bug\": 0,\n      \"feedback\": 2\n    },\n    \"bug\": {\n      \"account\": 0,\n      \"billing\": 0,\n      \"bug\": 8,\n      \"feedback\": 2\n    },\n    \"feedback\": {\n      \"account\": 0,\n      \"billing\": 0,\n      \"bug\": 0,\n      \"feedback\": 10\n    }\n  }\n}\n"
+}
